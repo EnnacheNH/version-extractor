@@ -77,13 +77,20 @@
   }
 }`;
 
-const format = () => {
-    const response = JSON.parse(document.getElementById('input-graphql').value);
-    const result = response.data.project.issues.edges.reduce((acc, {node}) => {
-        return acc + `#${node.iid} - ${node.title}\n`
-        }, "");
-    document.getElementById('input-result').innerHTML = result
-}
+    const format = () => {
+        try {
+            const response = JSON.parse(document.getElementById('input-graphql').value);
+            const result = response.data.project.issues.edges.reduce((acc, {
+                node
+            }) => {
+                return acc + `#${node.iid} - ${node.title}\n`
+            }, "");
+            document.getElementById('input-result').innerHTML = result;
+        } catch (error) {
+            alert("Echec du formattage :( #triste");
+            console.error(error);
+        }
+    }
 </script>
 
 </html>
