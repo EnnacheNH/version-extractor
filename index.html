@@ -10,47 +10,89 @@
 </head>
 
 <body>
-    <ul class="list-group">
-        <li class="list-group-item">1) Ouvrir <a href="https://gitlab.com/-/graphql-explorer"
-                target="_blank">https://gitlab.com/-/graphql-explorer</a></li>
-        <li class="list-group-item">2) Jouer la query à adapter avec le nom du projet et la version (voir exemple)</li>
-        <li class="list-group-item">3) Copier la réponse dans "Réponse GraphQL"</li>
-        <li class="list-group-item">4) Formatter</li>
-    </ul>
     <div class="container">
-        <div class="row">
-            <div class="col-8">
-                <div class="input-group graphql-input">
-                    <span class="input-group-text">Exemple de requête</span>
-                    <textarea id='input-example' class="form-control" disabled></textarea>
-                </div>
-            </div>
-            <div class="col-4">
-                <ul class="list-group">
-                    <li class="list-group-item">solutec-cds-dev-projet/ccv/ccv-p30</li>
-                    <li class="list-group-item">solutec-cds-dev-projet/ccv/ccv-x30</li>
-                    <li class="list-group-item">solutec-cds-dev-projet/ccv/CCVOutilPrefacturation</li>
-                    <li class="list-group-item">solutec-cds-dev-projet/ccv/ccv-mobility-middleware</li>
-                </ul>
-            </div>
-            <div class="row">
-                <div class="col-8">
-                    <div class="input-group graphql-input">
-                        <span class="input-group-text">Réponse GraphQL</span>
-                        <textarea id='input-graphql' class="form-control"></textarea>
-                    </div>
-                </div>
-                <div class="col-4 d-flex align-items-center">
-                    <button type="button" onclick="format()" class="btn btn-primary">Formatter</button>
-                </div>
+        <ul class="list-group">
+            <li class="list-group-item">1) Paramétrer la requête à faire</li>
+            <li class="list-group-item">2) Copier la requête à faire</li>
+            <li class="list-group-item">3) Ouvrir <a href="https://gitlab.com/-/graphql-explorer"
+                    target="_blank">https://gitlab.com/-/graphql-explorer</a> et jouer la query</li>
+            <li class="list-group-item">4) Copier la réponse dans "Réponse GraphQL"</li>
+            <li class="list-group-item">5) Formatter</li>
+        </ul>
+    </div>
 
+    <div class="container mt-4">
+        <div class="row">
+            <div class="col">
+                <div class="input-group mb-1">
+                    <div class="input-group-prepend">
+                        <select onchange="setQuery()" id="project-query-id" class="form-select">
+                            <option value="" selected>Projet</option>
+                            <option value="solutec-cds-dev-projet/ccv/ccv-p30">C30</option>
+                            <option value="solutec-cds-dev-projet/ccv/ccv-x30">X30</option>
+                            <option value="solutec-cds-dev-projet/ccv/CCVOutilPrefacturation">FCC</option>
+                            <option value="solutec-cds-dev-projet/ccv/ccv-mobility-middleware">MCC</option>
+                        </select>
+                    </div>
+                    <input oninput="setQuery()" id="version-query-id" type="text" class="form-control"
+                        placeholder="Numéro de version">
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-10">
+                <div class="input-group graphql-input">
+                    <span class="input-group-text">Requête à faire</span>
+                    <textarea id='input-query-id' class="form-control" disabled></textarea>
+                </div>
+            </div>
+            <div class="col-2 d-flex align-items-center justify-content-center">
+                <button class="btn btn-outline-secondary" type="button" onclick="copyToClipboard(queryGitlab)"
+                    id="toastBtnId">Copier</button>
             </div>
         </div>
     </div>
 
-    <div class="input-group graphql-input">
-        <span class="input-group-text">Résultat</span>
-        <textarea id='input-result' class="form-control" disabled></textarea>
+    <div class="container mt-4">
+        <div class="row">
+            <div class="col-10">
+                <div class="input-group graphql-input">
+                    <span class="input-group-text">Réponse GraphQL</span>
+                    <textarea id='input-graphql' class="form-control"></textarea>
+                </div>
+            </div>
+            <div class="col-2 d-flex align-items-center justify-content-center">
+                <button type="button" onclick="format()" class="btn btn-primary">Formatter</button>
+            </div>
+        </div>
+    </div>
+    </div>
+
+    <div class="container mt-4">
+        <div class="row">
+            <div class="col-10">
+                <div class="input-group graphql-input">
+                    <span class="input-group-text">Résultat</span>
+                    <textarea id='input-result' class="form-control" disabled></textarea>
+                </div>
+            </div>
+            <div class="col-2 d-flex align-items-center justify-content-center">
+                <button class="btn btn-outline-secondary" type="button" onclick="copyToClipboard(formattedResult)"
+                id="toastBtnId">Copier</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast-container position-fixed top-0 end-0 p-3">
+        <div id="toastId" class="toast align-items-center" role="alert" aria-live="assertive" aria-atomic="true"
+            data-bs-delay="2000">
+            <div class="d-flex">
+                <div class="toast-body">
+                    Copié !
+                </div>
+                <button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast"></button>
+            </div>
+        </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
@@ -64,9 +106,28 @@
     }
 </style>
 <script>
-    document.getElementById('input-example').innerHTML = `query  {
-  project(fullPath: "solutec-cds-dev-projet/ccv/ccv-x30") {
-    issues(milestoneTitle: "Version 2.5") {
+    let queryGitlab = '';
+    let formattedResult = '';
+
+    const toastTriggers = document.querySelectorAll('[id=toastBtnId]');
+    const toastElement = document.getElementById('toastId');
+    toastTriggers.forEach(toastTrigger => {
+        const toastBootstrap = bootstrap.Toast.getOrCreateInstance(toastElement)
+        toastTrigger.addEventListener('click', () => {
+            toastBootstrap.show()
+        })
+    });
+
+    const copyToClipboard = (text) => {
+        navigator.clipboard.writeText(text);
+    }
+
+    const setQuery = () => {
+        const project = document.getElementById('project-query-id').value;
+        const version = document.getElementById('version-query-id').value;
+        queryGitlab = `query  {
+  project(fullPath: "${project || 'solutec-cds-dev-projet/ccv/ccv-x30' }") {
+    issues(milestoneTitle: "Version ${version || '2.5'}") {
       edges {
         node {
           iid
@@ -76,6 +137,9 @@
     }
   }
 }`;
+        document.getElementById('input-query-id').innerHTML = queryGitlab;
+    }
+    setQuery();
 
     const format = () => {
         try {
@@ -85,6 +149,7 @@
             }) => {
                 return acc + `#${node.iid} - ${node.title}\n`
             }, "");
+            formattedResult = result;
             document.getElementById('input-result').innerHTML = result;
         } catch (error) {
             alert("Echec du formattage :( #triste");
